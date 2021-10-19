@@ -126,17 +126,20 @@ struct movie *processFile(char *filePath)
 
 
 void fileYear(int year, struct movie *list, char *dir)
-/* Function for option 1. Prints all movie titles listed from desired year*/
+/* 
+Creates a file for the designated year. Lists all movies released in the year.
+*/
 {
     FILE *fd;
     char fn[256];
+    // designate filepath 
     sprintf(fn, "%s/%d.txt", dir, year);
-
     if ((fd = fopen(fn, "w+"))!=NULL)
     {
         chmod(fn, S_IRUSR || S_IWUSR || S_IRGRP);
         while (list != NULL)
         {
+            // write movie titles from designated year to file
             if (list->release_year == year)
             {
                 fprintf(fd, "%s\n", list->title);
@@ -186,6 +189,7 @@ void process(char *fn)
     srandom(time(NULL));
     sprintf(dir, "bartonme.movies.%d", (random() % (100000)));
     mkdir(dir, 0750);
+    printf("Files will be located in new directory %s\n", dir);
 
     // gather list of years
     struct movie *list = processFile(fn);
@@ -195,23 +199,6 @@ void process(char *fn)
     // fill directory
     DIR* currDir = opendir(dir);
     int index = 0;
-    /*
-    FILE *fd;
-    while (list != NULL)
-    {
-        char fn[256];
-        sprintf(fn, "%s/%d.txt", dir, list->release_year);
-
-        if ((fd = fopen(fn, "w+"))!=NULL)
-        {
-            //chmod(fn, S_IRUSR || S_IWUSR || S_IRGRP);
-            fprintf(fd, "%s\n", list->title);
-            fn[0] = 0; 
-            fclose(fd); 
-        }
-        list = list->next;
-    }
-    */
     while (years[index] != 0)
     {
         fileYear(years[index], list, dir);
@@ -224,8 +211,11 @@ void process(char *fn)
 
 // ------------------------------ SEARCH FOR FILE ---------------------------
 
-
 char *searchLargestFile()
+/*
+function for option 1. Searches all files and returns the file with 
+the largest amount of data with a prefix "movies_" and has csv extension.
+*/
 {
     char *fn = malloc(256*sizeof(char));
     DIR* currDir = opendir(".");    //citation: from Directories Exploration
@@ -248,13 +238,14 @@ char *searchLargestFile()
             fseek(fd, 0L, SEEK_END);
             long int res = ftell(fd);
             char *dot = strchr(aDir->d_name, '.');
-            bool isCSV = 0;
             /* citation: https://stackoverflow.com/questions/5309471/getting-file-extension-in-c
             The above page gave the idea to search for "." in filename */
+            bool isCSV = 0;
             if (strcmp(dot+1, "csv") == 0)
             {
                 isCSV = 1;
             }
+            // replace largest file encountered if appropriate
             if (res > longest_file.size && isCSV)
             {
                 strcpy(longest_file.name, aDir->d_name);
@@ -270,6 +261,10 @@ char *searchLargestFile()
 }
 
 char *searchSmallestFile()
+/*
+function for option 2. Searches all files and returns the file with 
+the smallest amount of data with a prefix "movies_" and has csv extension.
+*/
 {
     char *fn = malloc(256*sizeof(char));
     DIR* currDir = opendir(".");    //citation: from Directories Exploration
@@ -293,10 +288,12 @@ char *searchSmallestFile()
             long int res = ftell(fd);  // points to the last byte in file, returns int as byte's position (i.e. how many bytes in file)
             char *dot = strchr(aDir->d_name, '.');
             bool isCSV = 0;
+            // check csv extension
             if (strcmp(dot+1, "csv") == 0)
             {
                 isCSV = 1;
             }
+            // replace shortest encountered file if appropriate
             if (isCSV && (res < shortest_file.size || shortest_file.size == -1))
             {
                 strcpy(shortest_file.name, aDir->d_name);
@@ -306,12 +303,17 @@ char *searchSmallestFile()
             fclose(fd);
         }
     }
-    printf("\nThe smallest file is %s. This file will now be processed.\n", shortest_file.name);
+    printf("\nThe smallest file is %s. This file will now be processed.\n", 
+        shortest_file.name);
     closedir(currDir);
     return fn;
 }
 
 char *searchFileByName()
+/* 
+function for option 3. Takes in name of desired file, and searches
+directory for same file name. 
+*/
 {   
     char *fn = malloc(256*sizeof(char));
     DIR* currDir = opendir("."); 
